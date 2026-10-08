@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, TOOLS, GUIDES } from '../data/site';
+
+const title = 'All ARC Raiders Economy Tools';
+const description =
+  'Every ARC ECONOMY tool in one place: craft profit calculator, raid loot EV, market flip margin and kit budget — free, no sign-up, client-side.';
+---
+
+<Base title={title} description={description} crumbs={[{ name: 'Tools' }]}>
+  <div class="page-head">
+    <h1>All ARC Raiders economy tools</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      Four tools covering the whole loop: craft it, raid it, flip it, budget it. All free, all client-side.
+    </p>
+  </div>
+
+  <div class="cards">
+    {TOOLS.map((t) => (
+      <a class="card" href={t.href}>
+        <span class="ico">{t.ico}</span>
+        <h3>{t.name}</h3>
+        <p>{t.desc}</p>
+        <span class="tag">{t.tag}</span>
+      </a>
+    ))}
+  </div>
+
+  <section class="prose">
+    <h2>Guides that feed the tools</h2>
+    <ul>
+      {GUIDES.map((g) => <li><a href={g.href}>{g.name}</a> — {g.desc}</li>)}
+    </ul>
+  </section>
+</Base>

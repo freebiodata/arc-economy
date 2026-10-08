@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../data/site';
+
+const title = 'Market Flipping in ARC Raiders – Spreads & Fees';
+const description =
+  'Market flipping basics for ARC Raiders: how spreads and fees decide profit, the break-even discipline, and the patch risk every flipper prices in.';
+const updated = SITE.lastVerified;
+---
+
+<Base
+  title={title}
+  description={description}
+  crumbs={[{ name: 'Guides' }, { name: 'Market Flipping' }]}
+  schema={[{
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'Market flipping basics for ARC Raiders',
+    datePublished: '2026-10-08',
+    dateModified: updated,
+    author: { '@type': 'Organization', name: SITE.brand },
+  }]}
+>
+  <div class="page-head">
+    <h1>Market flipping basics</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      Flipping is spread trading: buy liquidity now, sell into demand later, keep the spread after fees. The
+      boring version works; the clever version donates coins to the market.
+    </p>
+    <div class="microline"><span>By {SITE.brand}</span><span>Updated {updated}</span></div>
+  </div>
+
+  <section class="prose">
+    <h2>Quick answer</h2>
+    <p>
+      A flip works when sell price × (1 − fees) − buy price is comfortably positive — comfortably meaning it
+      survives slippage. Check every trade in the <a href="/flip-margin/">flip margin calculator</a>; the
+      break-even line is a floor, not a suggestion.
+    </p>
+
+    <h2>The fee reality</h2>
+    <p>
+      Fees are the house edge on every flip. A 25% gross spread with a 5% fee is a 20% margin; two fee tiers
+      higher and it's gone. Always compute net-first — set the calculator's fee to the current schedule [VERIFY]
+      and leave it there.
+    </p>
+
+    <h2>The three flips that actually work</h2>
+    <ol class="steps">
+      <li><strong>The wide-spread sit:</strong> list mid-demand items between bid and ask; patience does the work.</li>
+      <li><strong>The event play:</strong> buy consumables/crafting inputs before patch-driven demand, sell into it. Risky at the tail — size accordingly.</li>
+      <li><strong>The cross-market loop:</strong> flip loot into components or crafted goods when the <a href="/craft-profit/">craft spread</a> beats the raw spread.</li>
+    </ol>
+
+    <h2>Patch risk is the real enemy</h2>
+    <ul>
+      <li>A balance change can zero a meta item's demand overnight — never flip more than you can write off.</li>
+      <li>Patch-day volatility cuts both ways: the biggest spreads and the worst traps happen in the same 48 hours.</li>
+      <li>Diversify listings; one item is a bet, ten items are a book.</li>
+    </ul>
+  </section>
+</Base>

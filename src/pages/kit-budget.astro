@@ -1,0 +1,111 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../data/site';
+
+const title = 'ARC Raiders Kit Budget Calculator – Cost Per Raid';
+const description =
+  'Free ARC Raiders kit budget calculator: price your loadout line by line, add repair and consumables, and see the true cost per raid with amortized deaths.';
+
+const faqs = [
+  {
+    q: 'What is amortized cost per raid?',
+    a: 'Expected kit spend per raid including deaths: if you extract 55% of the time, you lose gear 45% of the time, so a 10,000 kit "costs" about 4,500 per raid in expectation. It is the honest way to compare a premium kit against a budget one.',
+  },
+  {
+    q: 'Do recovered items count?',
+    a: 'If the game returns gear on extraction or via insurance-like recovery, subtract the expected recovery from your loss. Fold it into the kit cost field as a net number.',
+  },
+  {
+    q: 'How cheap is too cheap?',
+    a: 'When your kit stops killing the AI tiers on your route, extraction rate falls — and EV falls faster than kit savings. Check both sides: this tool plus the <a href="/loot-ev/">raid loot EV</a> calculator.',
+  },
+];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<Base title={title} description={description} crumbs={[{ name: 'Tools', href: '/tools/' }, { name: 'Kit Budget' }]} schema={[faqLd]}>
+  <div class="page-head">
+    <h1>Kit Budget</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      Price the habit: weapon, shield, consumables, repairs — then amortize deaths over your real extraction
+      rate so every raid has a price tag before you queue it.
+    </p>
+    <div class="microline"><span>Free</span><span>No sign-up</span><span>Runs in your browser</span></div>
+  </div>
+
+  <form class="tool panel accent" id="kit" autocomplete="off" onsubmit="return false">
+    <div class="fields">
+      <label class="field"><span>Primary weapon</span><input id="w" type="number" value="4500" min="0" step="50" inputmode="numeric" /></label>
+      <label class="field"><span>Secondary</span><input id="s" type="number" value="1200" min="0" step="50" inputmode="numeric" /></label>
+      <label class="field"><span>Shield / armor</span><input id="a" type="number" value="2800" min="0" step="50" inputmode="numeric" /></label>
+      <label class="field"><span>Consumables</span><input id="c" type="number" value="900" min="0" step="50" inputmode="numeric" /></label>
+      <label class="field"><span>Ammo estimate</span><input id="am" type="number" value="600" min="0" step="50" inputmode="numeric" /></label>
+      <label class="field"><span>Repair reserve</span><input id="r" type="number" value="400" min="0" step="50" inputmode="numeric" /></label>
+      <label class="field"><span>Your extraction rate</span><input id="ext" type="number" value="55" min="1" max="100" step="1" inputmode="numeric" /><small>%</small></label>
+    </div>
+    <button class="btn" type="button" onclick="calcKit()">Price it</button>
+  </form>
+
+  <div class="result" id="result" aria-live="polite"></div>
+
+  <section class="prose">
+    <h2>How it works</h2>
+    <pre class="formula">kit cost      = Σ(line items)
+death rate    = 1 − extraction rate
+amortized     = kit cost × death rate   → expected kit loss per raid</pre>
+    <p>On a successful extract the kit comes home; on a death it's gone. Amortized cost spreads that risk over many raids so a risky premium kit can be compared honestly with a budget one. <a href="/methodology/">Methodology</a>.</p>
+
+    <h2>FAQ</h2>
+    {faqs.map((f) => (
+      <details><summary>{f.q}</summary><p>{f.a}</p></details>
+    ))}
+  </section>
+
+  <section class="prose">
+    <h2>Related tools and guides</h2>
+    <div class="cards">
+      <a class="card" href="/loot-ev/"><span class="ico">🎒</span><h3>Raid Loot EV</h3><p>EV minus amortized kit cost = true profit.</p><span class="tag">Calculator</span></a>
+      <a class="card" href="/guides/raid-loot-value/"><span class="ico">📗</span><h3>Raid loot value</h3><p>The five numbers behind every run.</p><span class="tag">Guide</span></a>
+      <a class="card" href="/flip-margin/"><span class="ico">📈</span><h3>Market Flip Margin</h3><p>Fund the kits by trading, not just raiding.</p><span class="tag">Calculator</span></a>
+    </div>
+  </section>
+
+  <div class="trust">
+    <strong>Maintained by {SITE.brand}</strong> · Free, no-ads, no-account · Formulas: <a href="/methodology/">Methodology</a> ·
+    Found an error? <a href="/contact/">Report it</a>.
+  </div>
+</Base>
+
+<script>
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const numv = (id: string) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : 0; };
+  const fmt = (n: number) => (Number.isFinite(n) ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n)) : '—');
+
+  function calcKit() {
+    const kit = numv('w') + numv('s') + numv('a') + numv('c') + numv('am') + numv('r');
+    const ext = Math.min(100, Math.max(1, numv('ext', 50))) / 100;
+    const amortized = kit * (1 - ext);
+    const el = document.getElementById('result')!;
+    el.innerHTML = `
+      <div class="stats">
+        <div class="stat"><span class="k">Full kit cost</span><span class="v">${fmt(kit)}</span></div>
+        <div class="stat"><span class="k">Amortized cost / raid</span><span class="v teal">${fmt(amortized)}</span></div>
+        <div class="stat"><span class="k">Cost per death</span><span class="v">${fmt(kit)}</span></div>
+      </div>
+      <div class="rows">
+        <div class="row"><span>Death rate used</span><b>${fmt((1 - ext) * 100, 0)}%</b></div>
+        <div class="row"><span>10-raid expected kit spend</span><b>${fmt(amortized * 10)}</b></div>
+      </div>
+      <p class="note">Compare with your <a href="/loot-ev/">loot EV per raid</a> — profit is the difference, not the loot number alone.</p>`;
+    (window as any).calcKit = calcKit;
+  }
+  (window as any).calcKit = calcKit;
+  document.getElementById('kit')?.addEventListener('input', calcKit);
+  calcKit();
+</script>

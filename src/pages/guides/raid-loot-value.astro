@@ -1,0 +1,58 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../data/site';
+
+const title = 'Raid Loot Value in ARC Raiders – The Five Numbers';
+const description =
+  'Raid loot value in ARC Raiders: the five numbers behind every run — EV per extract, extraction rate, kit cost, EV per hour, and break-even loot.';
+const updated = SITE.lastVerified;
+---
+
+<Base
+  title={title}
+  description={description}
+  crumbs={[{ name: 'Guides' }, { name: 'Raid Loot Value' }]}
+  schema={[{
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'Raid loot value: the five numbers',
+    datePublished: '2026-10-08',
+    dateModified: updated,
+    author: { '@type': 'Organization', name: SITE.brand },
+  }]}
+>
+  <div class="page-head">
+    <h1>Raid loot value</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      "Big loot raid" is a feeling. "EV per hour above break-even" is a plan. Five numbers, one honest verdict
+      on any farming route.
+    </p>
+    <div class="microline"><span>By {SITE.brand}</span><span>Updated {updated}</span></div>
+  </div>
+
+  <section class="prose">
+    <h2>Quick answer</h2>
+    <p>
+      Profit per raid = (extraction rate × loot per extract) − amortized kit cost. If you can't state both
+      sides of that equation for your usual route, run the <a href="/loot-ev/">raid loot EV</a> and{' '}
+      <a href="/kit-budget/">kit budget</a> tools once — it takes five minutes and changes how you pick maps.
+    </p>
+
+    <h2>The five numbers</h2>
+    <ol class="steps">
+      <li><strong>Loot per extract</strong> — your honest average, weighted by drop chance (<a href="/loot-ev/">EV tool</a>).</li>
+      <li><strong>Extraction rate</strong> — the multiplier on everything; a 10-point rate gain usually beats any loot route change.</li>
+      <li><strong>Amortized kit cost</strong> — kit × death rate; the silent tax on premium loadouts (<a href="/kit-budget/">budget tool</a>).</li>
+      <li><strong>EV per hour</strong> — raid time is inventory; compare routes per hour, never per raid.</li>
+      <li><strong>Break-even loot</strong> — the extract value where profit is zero; know it per kit.</li>
+    </ol>
+
+    <h2>What the math says about routes</h2>
+    <ul>
+      <li>High-value/high-death routes can lose to boring routes once deaths are priced in.</li>
+      <li>Loot untouched by a failed extract is worth exactly zero — extraction discipline is loot discipline.</li>
+      <li>Value density matters more than total loot: extracting early with a full bag beats dying rich.</li>
+    </ul>
+  </section>
+</Base>

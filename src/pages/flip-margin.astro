@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../data/site';
+
+const title = 'ARC Raiders Market Flip Margin Calculator';
+const description =
+  'Free ARC Raiders market flip calculator: buy price, sell price, quantity and fees — net profit per flip, ROI, and the minimum spread worth your listing slot.';
+
+const faqs = [
+  {
+    q: 'What fee should I enter?',
+    a: 'Whatever the current market charges on sale [VERIFY — check the in-game listing flow and set the default to match]. The field is editable precisely because fee schedules change.',
+  },
+  {
+    q: 'What spread makes a flip worth it?',
+    a: 'After fees, aim for margins that survive price slippage: if your item can drop 5% before it sells, a 12% gross spread is thinner than it looks. The break-even line in the results is your hard floor.',
+  },
+  {
+    q: 'Isn\'t flipping just latency trading?',
+    a: 'It\'s spread trading: paying liquidity now to sell into demand later. The boring version — same item, wide spread, patient listing — is the one that survives patches. See <a href="/guides/market-flipping/">market flipping basics</a>.',
+  },
+];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<Base title={title} description={description} crumbs={[{ name: 'Tools', href: '/tools/' }, { name: 'Market Flip Margin' }]} schema={[faqLd]}>
+  <div class="page-head">
+    <h1>Market Flip Margin</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      Buy low, sell high — but after fees, is it actually high? Net profit per flip, ROI, break-even spread and
+      a batch total before you commit the coins.
+    </p>
+    <div class="microline"><span>Free</span><span>No sign-up</span><span>Runs in your browser</span></div>
+  </div>
+
+  <form class="tool panel accent" id="flip" autocomplete="off" onsubmit="return false">
+    <div class="fields">
+      <label class="field"><span>Buy price each</span><input id="buy" type="number" value="1000" min="1" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Sell price each</span><input id="sell" type="number" value="1250" min="1" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Quantity</span><input id="qty" type="number" value="10" min="1" step="1" inputmode="numeric" /></label>
+      <label class="field"><span>Market fee</span><input id="fee" type="number" value="5" min="0" max="50" step="0.5" inputmode="numeric" /><small>% on sale [VERIFY]</small></label>
+    </div>
+    <button class="btn" type="button" onclick="calcFlip()">Calculate</button>
+  </form>
+
+  <div class="result" id="result" aria-live="polite"></div>
+
+  <section class="prose">
+    <h2>How it works</h2>
+    <pre class="formula">net each  = sell × (1 − fee%) − buy
+ROI       = net each ÷ buy × 100
+break-even sell = buy ÷ (1 − fee%)</pre>
+    <p>The break-even price is where the flip stops paying fees plus cost — anything listed below it is a donation. Fee default is an editable placeholder [VERIFY]. <a href="/methodology/">Methodology</a>.</p>
+
+    <h2>FAQ</h2>
+    {faqs.map((f) => (
+      <details><summary>{f.q}</summary><p>{f.a}</p></details>
+    ))}
+  </section>
+
+  <section class="prose">
+    <h2>Related tools and guides</h2>
+    <div class="cards">
+      <a class="card" href="/craft-profit/"><span class="ico">🛠️</span><h3>Craft Profit</h3><p>Compare flipping components vs crafting them.</p><span class="tag">Flagship</span></a>
+      <a class="card" href="/guides/market-flipping/"><span class="ico">📙</span><h3>Market flipping basics</h3><p>Discipline, spreads, and patch risk.</p><span class="tag">Guide</span></a>
+      <a class="card" href="/kit-budget/"><span class="ico">🎯</span><h3>Kit Budget</h3><p>Put the profits back into priced raids.</p><span class="tag">Calculator</span></a>
+    </div>
+  </section>
+
+  <div class="trust">
+    <strong>Maintained by {SITE.brand}</strong> · Free, no-ads, no-account · Formulas: <a href="/methodology/">Methodology</a> ·
+    Found an error? <a href="/contact/">Report it</a>.
+  </div>
+</Base>
+
+<script>
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const numv = (id: string) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : 0; };
+  const fmt = (n: number) => (Number.isFinite(n) ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n)) : '—');
+
+  function calcFlip() {
+    const buy = numv('buy'), sell = numv('sell'), qty = Math.max(1, numv('qty', 1));
+    const fee = Math.min(50, Math.max(0, numv('fee'))) / 100;
+    if (buy <= 0 || sell <= 0) return;
+    const netEach = sell * (1 - fee) - buy;
+    const roi = buy > 0 ? (netEach / buy) * 100 : NaN;
+    const breakEven = buy / (1 - fee);
+    const minSpread = ((breakEven - buy) / buy) * 100;
+    const el = document.getElementById('result')!;
+    el.innerHTML = `
+      <div class="stats">
+        <div class="stat"><span class="k">Net per item</span><span class="v">${netEach >= 0 ? '+' : ''}${fmt(netEach)}</span></div>
+        <div class="stat"><span class="k">Total (×${fmt(qty)})</span><span class="v teal">${netEach * qty >= 0 ? '+' : ''}${fmt(netEach * qty)}</span></div>
+        <div class="stat"><span class="k">ROI</span><span class="v">${fmt(roi)}%</span></div>
+      </div>
+      <div class="rows">
+        <div class="row"><span>Break-even sell price</span><b>${fmt(breakEven)}</b></div>
+        <div class="row"><span>Minimum spread to profit</span><b>+${fmt(minSpread)}%</b></div>
+      </div>
+      <div class="verdict ${netEach >= 0 ? 'ok' : 'bad'}">${netEach >= 0
+        ? `✅ Flip pays — but re-check the market before listing; spreads close.`
+        : `❌ Below break-even — the fee alone eats this spread.`}</div>
+      <p class="note">Assumes the sale completes at your price. Fee default is a placeholder [VERIFY]. <a href="/methodology/">Methodology</a>.</p>`;
+    (window as any).calcFlip = calcFlip;
+  }
+  (window as any).calcFlip = calcFlip;
+  document.getElementById('flip')?.addEventListener('input', calcFlip);
+  calcFlip();
+</script>

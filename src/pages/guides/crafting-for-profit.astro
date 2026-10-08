@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../data/site';
+
+const title = 'Crafting for Profit in ARC Raiders – Bench Guide';
+const description =
+  'Crafting for profit in ARC Raiders: when the bench beats the market, how to value materials at opportunity cost, and which recipes justify queue time.';
+const updated = SITE.lastVerified;
+---
+
+<Base
+  title={title}
+  description={description}
+  crumbs={[{ name: 'Guides' }, { name: 'Crafting for Profit' }]}
+  schema={[{
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'Crafting for profit in ARC Raiders',
+    datePublished: '2026-10-08',
+    dateModified: updated,
+    author: { '@type': 'Organization', name: SITE.brand },
+  }]}
+>
+  <div class="page-head">
+    <h1>Crafting for profit</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      The workbench is a printing press only when the spread says so. Here's the arithmetic that separates
+      profitable recipes from expensive hobbies.
+    </p>
+    <div class="microline"><span>By {SITE.brand}</span><span>Updated {updated}</span></div>
+  </div>
+
+  <section class="prose">
+    <h2>Quick answer</h2>
+    <p>
+      A recipe is profitable when: crafted item's market price × (1 − fees) is greater than the market value of
+      everything it consumes. That's it — and the <a href="/craft-profit/">craft profit calculator</a> exists
+      because eyeballing it is where the coins die.
+    </p>
+
+    <h2>Value materials at what they're worth, not what they cost you</h2>
+    <p>
+      Materials you looted "for free" still have a market price — selling them was the alternative. Craft profit
+      is measured against opportunity cost, which is why some recipes that "feel free" are actually losses.
+    </p>
+
+    <h2>The three questions before every batch</h2>
+    <ol class="steps">
+      <li><strong>Does it clear the spread?</strong> Run the numbers — margin must beat fees plus a slippage buffer.</li>
+      <li><strong>Is the output liquid?</strong> A 40% margin on an item that takes a week to sell is worse than 8% on one that sells instantly.</li>
+      <li><strong>What else could the bench make?</strong> Queue time is inventory; the best recipe is the best per-hour use of it.</li>
+    </ol>
+
+    <h2>When crafting beats flipping — and when it doesn't</h2>
+    <ul>
+      <li><strong>Beats it:</strong> demand for the crafted output outpaces component supply (players want convenience), or you looted the rare component yourself at scale.</li>
+      <li><strong>Loses to it:</strong> everyone crafts the same meta recipe — margins compress as supply floods in. Rotate recipes before the crowd does.</li>
+    </ul>
+    <div class="note-band">Related: <a href="/flip-margin/">market flip margin</a> — run both sides of the same item and take the bigger number.</div>
+  </section>
+</Base>

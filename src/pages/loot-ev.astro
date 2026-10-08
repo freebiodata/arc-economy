@@ -1,0 +1,114 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../data/site';
+
+const title = 'ARC Raiders Raid Loot EV Calculator – Expected Value';
+const description =
+  'Free ARC Raiders raid loot calculator: enter drop chances and item values plus your extraction rate to see expected loot value per raid and per hour.';
+
+const faqs = [
+  {
+    q: 'What is loot EV?',
+    a: 'Expected value: the average loot a raid produces when the same run is repeated many times — each item\'s value weighted by its drop chance, then scaled by how often you actually extract.',
+  },
+  {
+    q: 'Where do drop chances come from?',
+    a: 'Community-documented loot tables and your own tally. They change with patches and map rotations, which is why this tool takes your numbers instead of shipping a stale table.',
+  },
+  {
+    q: 'Why does my EV drop when my extraction rate does?',
+    a: 'Unextracted loot is worth zero. Extraction rate scales everything linearly — which is why surviving slightly more often is usually worth more than looting slightly faster. See the <a href="/guides/raid-loot-value/">raid loot value guide</a>.',
+  },
+];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<Base title={title} description={description} crumbs={[{ name: 'Tools', href: '/tools/' }, { name: 'Raid Loot EV' }]} schema={[faqLd]}>
+  <div class="page-head">
+    <h1>Raid Loot EV</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      What is a raid actually worth? Weight your realistic drops by chance, scale by your extraction rate, and
+      get expected value per raid — and per hour, so routes can be compared honestly.
+    </p>
+    <div class="microline"><span>Free</span><span>No sign-up</span><span>Runs in your browser</span></div>
+  </div>
+
+  <form class="tool panel accent" id="loot" autocomplete="off" onsubmit="return false">
+    <div class="fields">
+      <label class="field"><span>Common find — value</span><input id="v1" type="number" value="800" min="0" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Chance %</span><input id="p1" type="number" value="80" min="0" max="100" step="1" inputmode="numeric" /></label>
+      <label class="field"><span>Good find — value</span><input id="v2" type="number" value="3500" min="0" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Chance %</span><input id="p2" type="number" value="35" min="0" max="100" step="1" inputmode="numeric" /></label>
+      <label class="field"><span>Jackpot — value</span><input id="v3" type="number" value="12000" min="0" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Chance %</span><input id="p3" type="number" value="8" min="0" max="100" step="1" inputmode="numeric" /></label>
+      <label class="field"><span>Your extraction rate</span><input id="ext" type="number" value="55" min="1" max="100" step="1" inputmode="numeric" /><small>% from your last raids</small></label>
+      <label class="field"><span>Time per raid (min)</span><input id="time" type="number" value="25" min="1" step="1" inputmode="numeric" /></label>
+    </div>
+    <button class="btn" type="button" onclick="calcLoot()">Calculate</button>
+  </form>
+
+  <div class="result" id="result" aria-live="polite"></div>
+
+  <section class="prose">
+    <h2>How it works</h2>
+    <pre class="formula">EV per extract = Σ(dropChanceᵢ × valueᵢ)
+EV per raid    = EV per extract × extraction rate
+EV per hour    = EV per raid ÷ (raid time + queue time)</pre>
+    <p>Add or mentally fold in extra drop tiers — the model is linear, so a fourth tier's EV just adds on. Drop chances are your inputs; community tables move with patches. <a href="/methodology/">Methodology</a>.</p>
+
+    <h2>FAQ</h2>
+    {faqs.map((f) => (
+      <details><summary>{f.q}</summary><p>{f.a}</p></details>
+    ))}
+  </section>
+
+  <section class="prose">
+    <h2>Related tools and guides</h2>
+    <div class="cards">
+      <a class="card" href="/kit-budget/"><span class="ico">🎯</span><h3>Kit Budget</h3><p>EV minus kit cost is the number that matters.</p><span class="tag">Calculator</span></a>
+      <a class="card" href="/guides/raid-loot-value/"><span class="ico">📗</span><h3>Raid loot value</h3><p>The five numbers behind every run.</p><span class="tag">Guide</span></a>
+      <a class="card" href="/craft-profit/"><span class="ico">🛠️</span><h3>Craft Profit</h3><p>Turn raw drops into crafted value.</p><span class="tag">Flagship</span></a>
+    </div>
+  </section>
+
+  <div class="trust">
+    <strong>Maintained by {SITE.brand}</strong> · Free, no-ads, no-account · Formulas: <a href="/methodology/">Methodology</a> ·
+    Found an error? <a href="/contact/">Report it</a>.
+  </div>
+</Base>
+
+<script>
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const numv = (id: string) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : 0; };
+  const fmt = (n: number) => (Number.isFinite(n) ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n)) : '—');
+
+  function calcLoot() {
+    const evExtract = (numv('v1') * Math.min(100, numv('p1')) + numv('v2') * Math.min(100, numv('p2')) + numv('v3') * Math.min(100, numv('p3'))) / 100;
+    const ext = Math.min(100, Math.max(1, numv('ext', 50))) / 100;
+    const time = Math.max(1, numv('time', 25));
+    const evRaid = evExtract * ext;
+    const evHour = evRaid / (time / 60);
+    const el = document.getElementById('result')!;
+    el.innerHTML = `
+      <div class="stats">
+        <div class="stat"><span class="k">EV per successful extract</span><span class="v">${fmt(evExtract)}</span></div>
+        <div class="stat"><span class="k">EV per raid</span><span class="v teal">${fmt(evRaid)}</span></div>
+        <div class="stat"><span class="k">EV per hour</span><span class="v">${fmt(evHour)}</span></div>
+      </div>
+      <div class="rows">
+        <div class="row"><span>Extraction rate used</span><b>${fmt(ext * 100, 0)}%</b></div>
+        <div class="row"><span>If extraction were +10pts</span><b>${fmt(evExtract * Math.min(1, ext + 0.1))} / raid</b></div>
+      </div>
+      <p class="note">Linear model: each drop tier adds independently. Compare routes by EV per hour, not per raid. <a href="/methodology/">Methodology</a>.</p>`;
+    (window as any).calcLoot = calcLoot;
+  }
+  (window as any).calcLoot = calcLoot;
+  document.getElementById('loot')?.addEventListener('input', calcLoot);
+  calcLoot();
+</script>

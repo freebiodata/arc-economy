@@ -1,0 +1,91 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, TOOLS, GUIDES } from '../data/site';
+
+const title = 'ARC Economy – Craft Profit, Loot EV & Flipping Tools';
+const description =
+  'Free ARC Raiders economy tools: craft profit calculator, raid loot expected value, market flip margin and kit budget. No sign-up, no ads, runs in your browser.';
+
+const websiteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.brand,
+  url: Astro.site?.toString(),
+  description,
+};
+const orgLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.brand,
+  url: Astro.site?.toString(),
+  description: 'Unofficial fan-made economy calculators for ARC Raiders players.',
+};
+---
+
+<Base title={title} description={description} schema={[websiteLd, orgLd]}>
+  <section class="hero">
+    <p class="kicker">{SITE.kicker} are yours to enter // reviewed {SITE.lastVerified}</p>
+    <h1>Topside is a market. Here's your calculator.</h1>
+    <p class="sub">
+      Does this recipe beat selling the parts? Is this raid worth the kit? What does a flip actually pay after
+      fees? Free, instant, no sign-up — every number computed in your browser.
+    </p>
+    <div class="note-band">
+      Prices change per patch — every tool takes <strong>your</strong> numbers, so results are always current.
+      Formulas are public on the <a href="/methodology/">methodology page</a>.
+    </div>
+  </section>
+
+  <section aria-labelledby="tools-h">
+    <h2 id="tools-h">The toolkit</h2>
+    <div class="cards">
+      {TOOLS.map((t) => (
+        <a class="card" href={t.href}>
+          <span class="ico">{t.ico}</span>
+          <h3>{t.name}</h3>
+          <p>{t.desc}</p>
+          <span class="tag">{t.tag}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="prose" aria-labelledby="chooser-h">
+    <h2 id="chooser-h">Which tool do I need?</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th scope="col">Your question</th><th scope="col">Use</th></tr></thead>
+        <tbody>
+          <tr><td>"Is crafting this worth more than selling the components?"</td><td><a href="/craft-profit/">Craft Profit</a></td></tr>
+          <tr><td>"What is my average raid actually worth?"</td><td><a href="/loot-ev/">Raid Loot EV</a></td></tr>
+          <tr><td>"Does this flip pay after fees?"</td><td><a href="/flip-margin/">Market Flip Margin</a></td></tr>
+          <tr><td>"How expensive is my habit, per raid?"</td><td><a href="/kit-budget/">Kit Budget</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="prose" aria-labelledby="why-h">
+    <h2 id="why-h">Why ARC ECONOMY</h2>
+    <ul>
+      <li><strong>No ads, no account, no paywall.</strong> The tools are the product — not you.</li>
+      <li><strong>You supply the prices.</strong> Patch-day safe: your inputs, our math, zero stale databases.</li>
+      <li><strong>Everything runs in your browser.</strong> No uploads, no tracking, works on mobile data.</li>
+      <li><strong>Open formulas.</strong> Every calculation is documented on the <a href="/methodology/">methodology page</a>.</li>
+    </ul>
+  </section>
+
+  <section class="prose" aria-labelledby="learn-h">
+    <h2 id="learn-h">Learn the economy</h2>
+    <div class="cards">
+      {GUIDES.map((g) => (
+        <a class="card" href={g.href}>
+          <span class="ico">{g.ico}</span>
+          <h3>{g.name}</h3>
+          <p>{g.desc}</p>
+          <span class="tag">Guide</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</Base>

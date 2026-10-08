@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../data/site';
+
+const title = 'ARC Raiders Craft Profit Calculator – Recipe Margins';
+const description =
+  'Free ARC Raiders craft profit calculator: enter component costs, quantities and the crafted item\'s market price to see profit per craft, margin % and batch totals.';
+
+const faqs = [
+  {
+    q: 'What counts as a component cost?',
+    a: 'Everything the recipe consumes: materials at their market sell value (not what you paid — opportunity cost is what matters), plus any currency fee the workbench charges.',
+  },
+  {
+    q: 'Why use market sell value for materials I already own?',
+    a: 'If you craft with materials worth 5,000 and sell the output for 6,000, you only gained 1,000 — you could have sold the materials instead. Crafting profit is always measured against the components\' market value.',
+  },
+  {
+    q: 'Should I include workbench time?',
+    a: 'For most recipes the queue is short enough to ignore. If a long craft blocks a more profitable one, subtract what that bench time would have earned — the profit number is per craft, so math it in manually.',
+  },
+];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<Base title={title} description={description} crumbs={[{ name: 'Tools', href: '/tools/' }, { name: 'Craft Profit' }]} schema={[faqLd]}>
+  <div class="page-head">
+    <h1>Craft Profit Calculator</h1>
+    <div class="h1-bar"></div>
+    <p class="lede">
+      The bench question, answered: ingredients at market value versus the crafted item's sell price. Real
+      margin per craft — before you commit the materials.
+    </p>
+    <div class="microline"><span>Free</span><span>No sign-up</span><span>Runs in your browser</span></div>
+  </div>
+
+  <form class="tool panel accent" id="craft" autocomplete="off" onsubmit="return false">
+    <div class="fields">
+      <label class="field"><span>Component 1 cost</span><input id="c1" type="number" value="1200" min="0" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Qty</span><input id="q1" type="number" value="2" min="0" step="1" inputmode="numeric" /></label>
+      <label class="field"><span>Component 2 cost</span><input id="c2" type="number" value="800" min="0" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Qty</span><input id="q2" type="number" value="1" min="0" step="1" inputmode="numeric" /></label>
+      <label class="field"><span>Component 3 cost</span><input id="c3" type="number" value="0" min="0" step="10" inputmode="numeric" /><small>0 = unused</small></label>
+      <label class="field"><span>Qty</span><input id="q3" type="number" value="0" min="0" step="1" inputmode="numeric" /></label>
+      <label class="field"><span>Crafted item sell price</span><input id="sell" type="number" value="6500" min="1" step="10" inputmode="numeric" /></label>
+      <label class="field"><span>Market fee</span><input id="fee" type="number" value="5" min="0" max="50" step="0.5" inputmode="numeric" /><small>% [VERIFY current fee]</small></label>
+      <label class="field"><span>Batch size</span><input id="batch" type="number" value="1" min="1" step="1" inputmode="numeric" /></label>
+    </div>
+    <button class="btn" type="button" onclick="calcCraft()">Calculate</button>
+  </form>
+
+  <div class="result" id="result" aria-live="polite"></div>
+
+  <section class="prose">
+    <h2>How it works</h2>
+    <pre class="formula">componentCost = Σ(priceᵢ × qtyᵢ)
+netSell       = sellPrice × (1 − fee%)
+profit        = netSell − componentCost
+margin %      = profit ÷ componentCost × 100</pre>
+    <p>Materials are valued at market sell price — opportunity cost, not purchase price. The market fee default is an editable placeholder [VERIFY against the current fee schedule], per the <a href="/methodology/">methodology page</a>.</p>
+
+    <h2>FAQ</h2>
+    {faqs.map((f) => (
+      <details><summary>{f.q}</summary><p>{f.a}</p></details>
+    ))}
+  </section>
+
+  <section class="prose">
+    <h2>Related tools and guides</h2>
+    <div class="cards">
+      <a class="card" href="/flip-margin/"><span class="ico">📈</span><h3>Market Flip Margin</h3><p>Sometimes flipping the components beats crafting.</p><span class="tag">Calculator</span></a>
+      <a class="card" href="/guides/crafting-for-profit/"><span class="ico">📘</span><h3>Crafting for profit</h3><p>When the bench beats the bazaar.</p><span class="tag">Guide</span></a>
+      <a class="card" href="/loot-ev/"><span class="ico">🎒</span><h3>Raid Loot EV</h3><p>The other way materials enter your stash — priced.</p><span class="tag">Calculator</span></a>
+    </div>
+  </section>
+
+  <div class="trust">
+    <strong>Maintained by {SITE.brand}</strong> · Free, no-ads, no-account · Formulas: <a href="/methodology/">Methodology</a> ·
+    Found an error? <a href="/contact/">Report it</a>.
+  </div>
+</Base>
+
+<script>
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const numv = (id: string) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : 0; };
+  const fmt = (n: number) => (Number.isFinite(n) ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(n)) : '—');
+
+  function calcCraft() {
+    const cost = numv('c1') * numv('q1') + numv('c2') * numv('q2') + numv('c3') * numv('q3');
+    const sell = numv('sell'), fee = Math.min(50, Math.max(0, numv('fee'))) / 100, batch = Math.max(1, numv('batch', 1));
+    if (cost <= 0 || sell <= 0) return;
+    const netSell = sell * (1 - fee);
+    const profit = netSell - cost;
+    const margin = cost > 0 ? (profit / cost) * 100 : NaN;
+    const el = document.getElementById('result')!;
+    el.innerHTML = `
+      <div class="stats">
+        <div class="stat"><span class="k">Profit per craft</span><span class="v">${profit >= 0 ? '+' : ''}${fmt(profit)}</span></div>
+        <div class="stat"><span class="k">Margin</span><span class="v teal">${fmt(margin)}%</span></div>
+        <div class="stat"><span class="k">Batch profit (×${fmt(batch)})</span><span class="v">${profit * batch >= 0 ? '+' : ''}${fmt(profit * batch)}</span></div>
+      </div>
+      <div class="rows">
+        <div class="row"><span>Component cost</span><b>${fmt(cost)}</b></div>
+        <div class="row"><span>Net sell price (after fee)</span><b>${fmt(netSell)}</b></div>
+        <div class="row"><span>Break-even sell price</span><b>${fmt(cost / (1 - fee))}</b></div>
+      </div>
+      <div class="verdict ${profit >= 0 ? 'ok' : 'bad'}">${profit >= 0
+        ? `✅ Profitable — sell below ${fmt(cost / (1 - fee))} and the bench loses money.`
+        : `❌ Losing money — selling the components outright pays more.`}</div>
+      <p class="note">Materials valued at market sell price (opportunity cost). Fee default is a placeholder [VERIFY]. <a href="/methodology/">Methodology</a>.</p>`;
+    (window as any).calcCraft = calcCraft;
+  }
+  (window as any).calcCraft = calcCraft;
+  document.getElementById('craft')?.addEventListener('input', calcCraft);
+  calcCraft();
+</script>
